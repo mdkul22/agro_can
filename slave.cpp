@@ -22,10 +22,14 @@ int main() {
       }
       if(msg.id == 1200)
       {
+          wait(0.01);
           printf("Received request for sensor!\n");
           sensor.read();
           printf("Humidity: %d", sensor.getHumidity());
-       }
+          if (can1.write(CANMessage(1200, sensor.getHumidity(), 1))) { // CAN Message to check acivity of Bus
+             pc.printf("CAN message sent:");
+             wait(0.01);
+          }
     }
   }
 }

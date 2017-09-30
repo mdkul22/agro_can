@@ -36,14 +36,14 @@ public:
      * @returns
      * Celsius int
      */
-     int getCelsius();
+     uint8_t getCelsius();
 
     /** Get the humidity from the saved object.
      *
      * @returns
      * Humidity percentage int
      */
-     int getHumidity();
+     uint8_t getHumidity();
 
 private:
   ///percentage of humidity

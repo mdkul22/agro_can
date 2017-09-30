@@ -13,8 +13,16 @@ InterruptIn button(p5)
 
 void ask_val()
 {
+  CANMessage msg;
     if (can1.write(CANMessage(1200, 1, 1))) {
        pc.printf("Ask Sensor node \n");       // display message
+       if(can1.read(msg))
+       {
+         if(msg.id==1200)
+         {
+           LCD.printf(msg.data);
+         }
+       }
        }
     else{
       can1.reset();                           // Reset CANbus if there is a problem
@@ -28,10 +36,10 @@ int main() {
   while (1) {
     // send value to CAN bus and monitor return value to check if CAN
     // message was sent successfully. If so display, increment and toggle
-    if (can1.write(CANMessage(1300, &counter, 1))) {
-       pc.printf("CANBus Message sent: %d\n", counter);       // display message
-       counter++;                                             // increment message counter value
-       led1 = !led1;                                          // toggle LED1 to show message sent
+    if (can1.write(CANMessage(1300, &counter, 1))) { // CAN Message to check acivity of Bus
+       pc.printf("CAN Network Active: %d\n", counter);
+       counter++;
+       led1 = !led1;
     }
     else{
       can1.reset();                                           // Reset CANbus if there is a problem
