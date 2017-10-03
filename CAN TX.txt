@@ -1,0 +1,85 @@
+/* 
+Transmitter code
+CANBus Tutorial based on lots of example code
+*/
+
+#include "mbed.h"
+#include "Adafruit_SSD1306.h"
+#include "dht11.h"
+
+Serial pc(USBTX, USBRX);          // tx, rx for Tera Term output
+I2C myI2C(p28,p27);
+Adafruit_SSD1306_I2c myGUI(myI2C,D13,0x78,64,128);
+DHT11 sensor(p9);
+
+DigitalOut led1(LED1);            // LED1 displays messsage sent Status
+CAN can1(p9, p10);                // CAN interface
+char counter = 0;                 // Counter Variable to store number of sent messages
+InterruptIn button(p5)
+int state=0;
+void ask_val()
+{
+    if (can1.write(CANMessage(1200, 1, 1))) {  
+       pc.printf("Ask Sensor node \n");       // display message
+       }
+    else{
+      can1.reset();                           // Reset CANbus if there is a problem
+    }
+    state=!state;
+}
+
+void displayMasterVal()
+{
+    
+    myGUI.clearDisplay();
+    myGUI.printf("%s\r\n","Humidity");
+    myGUI.display();
+    myGUI.setTextCursor(0x0045,0x0020);
+    sensor.read();
+    myGUI.printf("%u\r\n",sensor.getHumidity);
+    myGUI.display();
+}
+void displaySlaveVal( int a)
+{
+    
+    myGUI.clearDisplay();
+    myGUI.printf("%s\r\n","Slave Humidity");
+    myGUI.display();
+    myGUI.setTextCursor(0x0045,0x0020);
+    myGUI.printf("%d\r\n",a);
+    myGUI.display();  
+}
+    
+int main() {
+  CANMessage msg; 
+  myGUI.begin();
+  button.rise(&ask_val);
+  if(can1.read(msg))
+  {
+      if(msg.id==1100)
+      int sensorVal=msg.data[0];
+    }
+  printf("sending a message via CANbus... ");
+  while (1) {       
+    // send value to CAN bus and monitor return value to check if CAN
+    // message was sent successfully. If so display, increment and toggle
+    if (can1.write(CANMessage(1300, &counter, 1))) {  
+       pc.printf("CANBus Message sent: %d\n", counter);       // display message
+       counter++;                                             // increment message counter value
+       led1 = !led1;                                          // toggle LED1 to show message sent
+    }
+    else{
+      can1.reset();                                           // Reset CANbus if there is a problem
+    }
+    wait(2);                                                  // wait a second  
+    if (state==0)
+    {
+        displayMasterVal();
+    }
+    else
+    {
+        displaySlaveVal(sensorVal);
+    }
+          
+  }
+}
